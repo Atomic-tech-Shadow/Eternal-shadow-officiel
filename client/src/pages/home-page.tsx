@@ -4,6 +4,7 @@ import { Post } from "@shared/schema";
 import PostCard from "@/components/post-card";
 import CreatePost from "@/components/create-post";
 import UserProfile from "@/components/user-profile";
+import Navigation from "@/components/ui/navigation";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 
@@ -32,6 +33,8 @@ export default function HomePage() {
           </div>
         </div>
       </header>
+
+      <Navigation />
 
       <main className="container mx-auto px-4 py-8">
         <div className="grid lg:grid-cols-3 gap-8">

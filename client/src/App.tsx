@@ -8,6 +8,8 @@ import AuthPage from "@/pages/auth-page";
 import ForumPage from "@/pages/forum/forum-page";
 import CategoryPage from "@/pages/forum/category-page";
 import ThreadPage from "@/pages/forum/thread-page";
+import ProjectsPage from "@/pages/projects/projects-page";
+import ProjectPage from "@/pages/projects/project-page";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "./lib/protected-route";
 
@@ -19,6 +21,8 @@ function Router() {
       <Route path="/forum" component={ForumPage} />
       <Route path="/forum/:slug" component={CategoryPage} />
       <Route path="/forum/:slug/thread/:threadId" component={ThreadPage} />
+      <Route path="/projects" component={ProjectsPage} />
+      <Route path="/projects/:projectId" component={ProjectPage} />
       <Route component={NotFound} />
     </Switch>
   );
