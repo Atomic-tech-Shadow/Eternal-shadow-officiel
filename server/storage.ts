@@ -1,60 +1,55 @@
-import { IStorage } from "./storage.interface";
-import { Post, User, InsertPost, InsertUser } from "@shared/schema";
+import { db } from "./db";
+import { users, posts } from "@shared/schema";
+import { eq } from "drizzle-orm";
 import session from "express-session";
-import createMemoryStore from "memorystore";
+import connectPg from "connect-pg-simple";
+import type { Post, User, InsertUser, InsertPost } from "@shared/schema";
+import { pool } from "./db";
 
-const MemoryStore = createMemoryStore(session);
+const PostgresSessionStore = connectPg(session);
 
-export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  private posts: Map<number, Post>;
-  private currentUserId: number;
-  private currentPostId: number;
+export interface IStorage {
+  getUser(id: number): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  createUser(user: InsertUser): Promise<User>;
+  getAllPosts(): Promise<Post[]>;
+  createPost(post: InsertPost & { userId: number }): Promise<Post>;
+  sessionStore: session.Store;
+}
+
+export class DatabaseStorage implements IStorage {
   sessionStore: session.Store;
 
   constructor() {
-    this.users = new Map();
-    this.posts = new Map();
-    this.currentUserId = 1;
-    this.currentPostId = 1;
-    this.sessionStore = new MemoryStore({
-      checkPeriod: 86400000,
+    this.sessionStore = new PostgresSessionStore({
+      pool,
+      createTableIfMissing: true,
     });
   }
 
   async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.currentUserId++;
-    const user: User = { ...insertUser, id, avatar: null, bio: null };
-    this.users.set(id, user);
+    const [user] = await db.insert(users).values(insertUser).returning();
     return user;
   }
 
   async getAllPosts(): Promise<Post[]> {
-    return Array.from(this.posts.values()).sort((a, b) => 
-      b.createdAt.getTime() - a.createdAt.getTime()
-    );
+    return await db.select().from(posts).orderBy(posts.createdAt);
   }
 
   async createPost(post: InsertPost & { userId: number }): Promise<Post> {
-    const id = this.currentPostId++;
-    const newPost: Post = {
-      ...post,
-      id,
-      createdAt: new Date(),
-    };
-    this.posts.set(id, newPost);
+    const [newPost] = await db.insert(posts).values(post).returning();
     return newPost;
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
