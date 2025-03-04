@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Post } from "@shared/schema";
 import PostCard from "@/components/post-card";
 import CreatePost from "@/components/create-post";
+import UserProfile from "@/components/user-profile";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 
@@ -18,7 +19,6 @@ export default function HomePage() {
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <h1 className="text-2xl font-bold">Eternal Shadow Nexus</h1>
           <div className="flex items-center gap-4">
-            <span>Welcome, {user?.username}</span>
             <Button 
               variant="outline"
               onClick={() => logoutMutation.mutate()}
@@ -34,18 +34,26 @@ export default function HomePage() {
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        <CreatePost />
-        
-        <div className="mt-8 space-y-6">
-          {isLoading ? (
-            <div className="flex justify-center">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <div className="grid lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2">
+            <CreatePost />
+
+            <div className="mt-8 space-y-6">
+              {isLoading ? (
+                <div className="flex justify-center">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              ) : (
+                posts?.map((post) => (
+                  <PostCard key={post.id} post={post} />
+                ))
+              )}
             </div>
-          ) : (
-            posts?.map((post) => (
-              <PostCard key={post.id} post={post} />
-            ))
-          )}
+          </div>
+
+          <div>
+            {user && <UserProfile user={user} />}
+          </div>
         </div>
       </main>
     </div>

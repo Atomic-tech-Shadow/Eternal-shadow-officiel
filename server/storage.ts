@@ -1,9 +1,9 @@
 import { db } from "./db";
-import { users, posts } from "@shared/schema";
+import { users, posts, badges, userBadges } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
-import type { Post, User, InsertUser, InsertPost } from "@shared/schema";
+import type { Post, User, InsertUser, InsertPost, Badge, UserBadge } from "@shared/schema";
 import { pool } from "./db";
 
 const PostgresSessionStore = connectPg(session);
@@ -14,6 +14,9 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   getAllPosts(): Promise<Post[]>;
   createPost(post: InsertPost & { userId: number }): Promise<Post>;
+  getUserBadges(userId: number): Promise<Badge[]>;
+  addExperience(userId: number, amount: number): Promise<User>;
+  awardBadge(userId: number, badgeId: number): Promise<void>;
   sessionStore: session.Store;
 }
 
@@ -48,7 +51,59 @@ export class DatabaseStorage implements IStorage {
 
   async createPost(post: InsertPost & { userId: number }): Promise<Post> {
     const [newPost] = await db.insert(posts).values(post).returning();
+
+    // Award experience points for creating a post
+    await this.addExperience(post.userId, 10);
+
     return newPost;
+  }
+
+  async getUserBadges(userId: number): Promise<Badge[]> {
+    const userBadgesWithDetails = await db
+      .select({
+        badge: badges,
+        earnedAt: userBadges.earnedAt,
+      })
+      .from(userBadges)
+      .where(eq(userBadges.userId, userId))
+      .innerJoin(badges, eq(userBadges.badgeId, badges.id));
+
+    return userBadgesWithDetails.map(({ badge }) => badge);
+  }
+
+  async addExperience(userId: number, amount: number): Promise<User> {
+    const user = await this.getUser(userId);
+    if (!user) throw new Error("User not found");
+
+    const newExperience = user.experience + amount;
+    const newLevel = Math.floor(Math.sqrt(newExperience / 100)) + 1;
+
+    const [updatedUser] = await db
+      .update(users)
+      .set({
+        experience: newExperience,
+        level: newLevel,
+      })
+      .where(eq(users.id, userId))
+      .returning();
+
+    return updatedUser;
+  }
+
+  async awardBadge(userId: number, badgeId: number): Promise<void> {
+    // Check if user already has this badge
+    const [existingBadge] = await db
+      .select()
+      .from(userBadges)
+      .where(eq(userBadges.userId, userId))
+      .where(eq(userBadges.badgeId, badgeId));
+
+    if (!existingBadge) {
+      await db.insert(userBadges).values({
+        userId,
+        badgeId,
+      });
+    }
   }
 }
 
