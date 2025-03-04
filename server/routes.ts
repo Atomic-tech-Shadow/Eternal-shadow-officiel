@@ -2,11 +2,12 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth } from "./auth";
 import { storage } from "./storage";
-import { insertPostSchema } from "@shared/schema";
+import { insertPostSchema, insertForumThreadSchema, insertForumReplySchema, insertProjectSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   setupAuth(app);
 
+  // Routes existantes
   app.get("/api/posts", async (req, res) => {
     const posts = await storage.getAllPosts();
     res.json(posts);
@@ -41,6 +42,109 @@ export async function registerRoutes(app: Express): Promise<Server> {
       experience: user.experience,
       nextLevelExperience: Math.pow((user.level + 1) - 1, 2) * 100,
     });
+  });
+
+  // Nouvelles routes pour le forum
+  app.get("/api/forum/categories", async (req, res) => {
+    const categories = await storage.getForumCategories();
+    res.json(categories);
+  });
+
+  app.get("/api/forum/categories/:categoryId/threads", async (req, res) => {
+    const threads = await storage.getForumThreads(parseInt(req.params.categoryId));
+    res.json(threads);
+  });
+
+  app.get("/api/forum/threads/:threadId", async (req, res) => {
+    const thread = await storage.getForumThread(parseInt(req.params.threadId));
+    if (!thread) return res.status(404).json({ message: "Thread not found" });
+    res.json(thread);
+  });
+
+  app.post("/api/forum/threads", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    const result = insertForumThreadSchema.safeParse(req.body);
+    if (!result.success) {
+      return res.status(400).json(result.error);
+    }
+
+    const thread = await storage.createForumThread({
+      ...result.data,
+      userId: req.user.id,
+      isPinned: false,
+      isLocked: false,
+    });
+    res.status(201).json(thread);
+  });
+
+  app.get("/api/forum/threads/:threadId/replies", async (req, res) => {
+    const replies = await storage.getThreadReplies(parseInt(req.params.threadId));
+    res.json(replies);
+  });
+
+  app.post("/api/forum/threads/:threadId/replies", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    const result = insertForumReplySchema.safeParse(req.body);
+    if (!result.success) {
+      return res.status(400).json(result.error);
+    }
+
+    const reply = await storage.createThreadReply({
+      ...result.data,
+      userId: req.user.id,
+    });
+    res.status(201).json(reply);
+  });
+
+  // Nouvelles routes pour les projets
+  app.get("/api/projects", async (req, res) => {
+    const projects = await storage.getProjects();
+    res.json(projects);
+  });
+
+  app.get("/api/projects/:projectId", async (req, res) => {
+    const project = await storage.getProject(parseInt(req.params.projectId));
+    if (!project) return res.status(404).json({ message: "Project not found" });
+    res.json(project);
+  });
+
+  app.post("/api/projects", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    const result = insertProjectSchema.safeParse(req.body);
+    if (!result.success) {
+      return res.status(400).json(result.error);
+    }
+
+    const project = await storage.createProject({
+      ...result.data,
+      userId: req.user.id,
+      status: "active",
+    });
+    res.status(201).json(project);
+  });
+
+  app.get("/api/projects/:projectId/members", async (req, res) => {
+    const members = await storage.getProjectMembers(parseInt(req.params.projectId));
+    res.json(members);
+  });
+
+  app.post("/api/projects/:projectId/members", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    const { userId, role } = req.body;
+    if (!userId || !role) {
+      return res.status(400).json({ message: "Missing userId or role" });
+    }
+
+    const member = await storage.addProjectMember(
+      parseInt(req.params.projectId),
+      userId,
+      role
+    );
+    res.status(201).json(member);
   });
 
   const httpServer = createServer(app);
