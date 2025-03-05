@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import ProjectCard from "@/components/projects/project-card";
 import CreateProject from "@/components/projects/create-project";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Loader2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,

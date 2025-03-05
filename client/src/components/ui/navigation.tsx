@@ -12,21 +12,23 @@ export default function Navigation() {
   ];
 
   return (
-    <nav className="border-b">
+    <nav className="border-b" aria-label="Navigation principale">
       <div className="container mx-auto px-4">
         <div className="flex space-x-4">
           {links.map(({ href, icon: Icon, label }) => (
             <Link key={href} href={href}>
               <a
+                role="link"
+                aria-current={location === href ? "page" : undefined}
                 className={cn(
-                  "flex items-center gap-2 px-3 py-2 text-sm font-medium",
+                  "flex items-center gap-2 px-3 py-2 text-sm font-medium cursor-pointer",
                   "hover:text-primary transition-colors",
                   location === href
                     ? "border-b-2 border-primary text-primary"
                     : "text-muted-foreground"
                 )}
               >
-                <Icon className="h-4 w-4" />
+                <Icon className="h-4 w-4" aria-hidden="true" />
                 {label}
               </a>
             </Link>

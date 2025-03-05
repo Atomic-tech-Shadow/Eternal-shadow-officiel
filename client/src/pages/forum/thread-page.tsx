@@ -1,6 +1,6 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useParams } from "wouter";
-import { ForumThread, ForumReply, insertForumReplySchema } from "@shared/schema";
+import { useParams, Link } from "wouter";
+import { ForumThread, ForumReply, ForumCategory, insertForumReplySchema } from "@shared/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useAuth } from "@/hooks/use-auth";
@@ -12,14 +12,29 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Loader2, Lock } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 
 export default function ThreadPage() {
-  const { threadId } = useParams();
+  const { threadId, slug } = useParams();
   const { user } = useAuth();
   const { toast } = useToast();
 
+  const { data: categories } = useQuery<ForumCategory[]>({
+    queryKey: ["/api/forum/categories"],
+  });
+
+  const category = categories?.find((c) => c.slug === slug);
+
   const { data: thread, isLoading: threadLoading } = useQuery<ForumThread>({
     queryKey: [`/api/forum/threads/${threadId}`],
+    enabled: !!threadId,
   });
 
   const { data: replies, isLoading: repliesLoading } = useQuery<ForumReply[]>({
@@ -71,13 +86,33 @@ export default function ThreadPage() {
     );
   }
 
-  if (!thread) {
+  if (!thread || !category) {
     return <div>Discussion non trouvée</div>;
   }
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="space-y-8">
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link href="/forum">Forum</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link href={`/forum/${category.slug}`}>{category.name}</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>{thread.title}</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+
+      <div className="space-y-8 mt-4">
         <div>
           <h1 className="text-4xl font-bold flex items-center gap-2">
             {thread.title}
