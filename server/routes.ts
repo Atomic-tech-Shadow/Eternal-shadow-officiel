@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { setupAuth } from "./auth";
 import { storage } from "./storage";
 import { insertPostSchema, insertForumThreadSchema, insertForumReplySchema, insertProjectSchema, insertReportSchema } from "@shared/schema";
+import { ilike } from "drizzle-orm";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   setupAuth(app);
@@ -193,6 +194,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       resolution
     );
     res.json(report);
+  });
+
+  // Routes de recherche
+  app.get("/api/search/posts", async (req, res) => {
+    const query = req.query.q as string;
+    if (!query) return res.status(400).json({ message: "Query parameter is required" });
+
+    const posts = await storage.searchPosts(query);
+    res.json(posts);
+  });
+
+  app.get("/api/search/forum", async (req, res) => {
+    const query = req.query.q as string;
+    if (!query) return res.status(400).json({ message: "Query parameter is required" });
+
+    const threads = await storage.searchThreads(query);
+    res.json(threads);
+  });
+
+  app.get("/api/search/projects", async (req, res) => {
+    const query = req.query.q as string;
+    if (!query) return res.status(400).json({ message: "Query parameter is required" });
+
+    const projects = await storage.searchProjects(query);
+    res.json(projects);
   });
 
   const httpServer = createServer(app);

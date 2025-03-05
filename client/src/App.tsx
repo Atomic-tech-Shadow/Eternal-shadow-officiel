@@ -11,6 +11,7 @@ import ThreadPage from "@/pages/forum/thread-page";
 import ProjectsPage from "@/pages/projects/projects-page";
 import ProjectPage from "@/pages/projects/project-page";
 import ReportsPage from "@/pages/moderation/reports-page";
+import SearchPage from "@/pages/search-page";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "./lib/protected-route";
 
@@ -25,6 +26,7 @@ function Router() {
       <Route path="/projects" component={ProjectsPage} />
       <Route path="/projects/:projectId" component={ProjectPage} />
       <ProtectedRoute path="/moderation" component={ReportsPage} />
+      <Route path="/search" component={SearchPage} />
       <Route component={NotFound} />
     </Switch>
   );

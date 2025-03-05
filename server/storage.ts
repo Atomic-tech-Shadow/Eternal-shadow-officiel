@@ -1,6 +1,6 @@
 import { db } from "./db";
 import { users, posts, badges, userBadges, forumCategories, forumThreads, forumReplies, projects, projectMembers, moderators, reports } from "@shared/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, ilike, or } from "drizzle-orm";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
 import type { 
@@ -45,6 +45,11 @@ export interface IStorage {
   getReports(status?: string): Promise<Report[]>;
   createReport(report: Omit<Report, "id" | "status" | "createdAt" | "updatedAt">): Promise<Report>;
   updateReportStatus(reportId: number, status: string, moderatorId: number, resolution?: string): Promise<Report>;
+
+  // Méthodes de recherche
+  searchPosts(query: string): Promise<Post[]>;
+  searchThreads(query: string): Promise<ForumThread[]>;
+  searchProjects(query: string): Promise<Project[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -251,6 +256,41 @@ export class DatabaseStorage implements IStorage {
       .where(eq(reports.id, reportId))
       .returning();
     return updatedReport;
+  }
+
+  // Implémentation des méthodes de recherche
+  async searchPosts(query: string): Promise<Post[]> {
+    return await db
+      .select()
+      .from(posts)
+      .where(ilike(posts.content, `%${query}%`))
+      .orderBy(desc(posts.createdAt));
+  }
+
+  async searchThreads(query: string): Promise<ForumThread[]> {
+    return await db
+      .select()
+      .from(forumThreads)
+      .where(
+        or(
+          ilike(forumThreads.title, `%${query}%`),
+          ilike(forumThreads.content, `%${query}%`)
+        )
+      )
+      .orderBy(desc(forumThreads.updatedAt));
+  }
+
+  async searchProjects(query: string): Promise<Project[]> {
+    return await db
+      .select()
+      .from(projects)
+      .where(
+        or(
+          ilike(projects.name, `%${query}%`),
+          ilike(projects.description, `%${query}%`)
+        )
+      )
+      .orderBy(desc(projects.updatedAt));
   }
 }
 
