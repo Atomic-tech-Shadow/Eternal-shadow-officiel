@@ -33,20 +33,24 @@ export default function SearchBar() {
   };
 
   return (
-    <form onSubmit={handleSearch} className="flex gap-2">
-      <div className="flex-1 relative">
+    <form onSubmit={handleSearch} className="flex gap-2 items-center">
+      <div className="relative flex-1">
         <Input
           type="search"
           placeholder="Rechercher..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="pl-10"
+          className="pl-10 w-full"
         />
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
       </div>
-      <Select value={searchType} onValueChange={setSearchType}>
-        <SelectTrigger className="w-[180px]">
-          <SelectValue placeholder="Type de recherche" />
+      <Select 
+        value={searchType} 
+        onValueChange={setSearchType}
+        defaultValue="posts"
+      >
+        <SelectTrigger className="w-[120px] md:w-[180px]">
+          <SelectValue placeholder="Type" />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="posts">Posts</SelectItem>
