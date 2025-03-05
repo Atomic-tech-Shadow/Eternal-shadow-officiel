@@ -87,6 +87,27 @@ export const projectMembers = pgTable("project_members", {
   joinedAt: timestamp("joined_at").defaultNow(),
 });
 
+// Nouvelles tables pour la modération
+export const moderators = pgTable("moderators", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  permissions: text("permissions").array(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const reports = pgTable("reports", {
+  id: serial("id").primaryKey(),
+  reporterId: integer("reporter_id").notNull(),
+  targetType: text("target_type").notNull(), // 'post', 'thread', 'reply'
+  targetId: integer("target_id").notNull(),
+  reason: text("reason").notNull(),
+  status: text("status").notNull().default("pending"),
+  moderatorId: integer("moderator_id"),
+  resolution: text("resolution"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Schémas d'insertion
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
@@ -119,6 +140,13 @@ export const insertProjectSchema = createInsertSchema(projects).pick({
   websiteUrl: true,
 });
 
+// Schémas d'insertion pour la modération
+export const insertReportSchema = createInsertSchema(reports).pick({
+  targetType: true,
+  targetId: true,
+  reason: true,
+});
+
 // Types exportés
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -131,3 +159,8 @@ export type ForumThread = typeof forumThreads.$inferSelect;
 export type ForumReply = typeof forumReplies.$inferSelect;
 export type Project = typeof projects.$inferSelect;
 export type ProjectMember = typeof projectMembers.$inferSelect;
+
+// Types exportés pour la modération
+export type Moderator = typeof moderators.$inferSelect;
+export type Report = typeof reports.$inferSelect;
+export type InsertReport = z.infer<typeof insertReportSchema>;

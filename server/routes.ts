@@ -1,8 +1,8 @@
-import type { Express } from "express";
+import type { Express, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth } from "./auth";
 import { storage } from "./storage";
-import { insertPostSchema, insertForumThreadSchema, insertForumReplySchema, insertProjectSchema } from "@shared/schema";
+import { insertPostSchema, insertForumThreadSchema, insertForumReplySchema, insertProjectSchema, insertReportSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   setupAuth(app);
@@ -145,6 +145,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
       role
     );
     res.status(201).json(member);
+  });
+
+  // Middleware pour vérifier si l'utilisateur est modérateur
+  async function isModerator(req: any, res: Response, next: NextFunction) {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    const moderator = await storage.getModerator(req.user.id);
+    if (!moderator) return res.sendStatus(403);
+
+    req.moderator = moderator;
+    next();
+  }
+
+  // Routes de modération
+  app.post("/api/reports", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    const result = insertReportSchema.safeParse(req.body);
+    if (!result.success) {
+      return res.status(400).json(result.error);
+    }
+
+    const report = await storage.createReport({
+      ...result.data,
+      reporterId: req.user.id,
+    });
+    res.status(201).json(report);
+  });
+
+  app.get("/api/reports", isModerator, async (req, res) => {
+    const status = req.query.status as string | undefined;
+    const reports = await storage.getReports(status);
+    res.json(reports);
+  });
+
+  app.patch("/api/reports/:reportId", isModerator, async (req, res) => {
+    const { status, resolution } = req.body;
+    if (!status) {
+      return res.status(400).json({ message: "Status is required" });
+    }
+
+    const report = await storage.updateReportStatus(
+      parseInt(req.params.reportId),
+      status,
+      req.user.id,
+      resolution
+    );
+    res.json(report);
   });
 
   const httpServer = createServer(app);

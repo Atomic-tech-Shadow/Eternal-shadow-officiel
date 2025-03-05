@@ -1,11 +1,12 @@
 import { db } from "./db";
-import { users, posts, badges, userBadges, forumCategories, forumThreads, forumReplies, projects, projectMembers } from "@shared/schema";
+import { users, posts, badges, userBadges, forumCategories, forumThreads, forumReplies, projects, projectMembers, moderators, reports } from "@shared/schema";
 import { eq, desc } from "drizzle-orm";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
 import type { 
   Post, User, InsertUser, InsertPost, Badge, UserBadge,
-  ForumCategory, ForumThread, ForumReply, Project, ProjectMember
+  ForumCategory, ForumThread, ForumReply, Project, ProjectMember,
+  Moderator, Report
 } from "@shared/schema";
 import { pool } from "./db";
 
@@ -37,6 +38,13 @@ export interface IStorage {
   createProject(project: Omit<Project, "id" | "createdAt" | "updatedAt">): Promise<Project>;
   getProjectMembers(projectId: number): Promise<(ProjectMember & { user: User })[]>;
   addProjectMember(projectId: number, userId: number, role: string): Promise<ProjectMember>;
+
+  // Méthodes de modération
+  getModerator(userId: number): Promise<Moderator | undefined>;
+  createModerator(userId: number, permissions: string[]): Promise<Moderator>;
+  getReports(status?: string): Promise<Report[]>;
+  createReport(report: Omit<Report, "id" | "status" | "createdAt" | "updatedAt">): Promise<Report>;
+  updateReportStatus(reportId: number, status: string, moderatorId: number, resolution?: string): Promise<Report>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -196,6 +204,53 @@ export class DatabaseStorage implements IStorage {
       .values({ projectId, userId, role })
       .returning();
     return member;
+  }
+
+  // Implémentation des méthodes de modération
+  async getModerator(userId: number): Promise<Moderator | undefined> {
+    const [moderator] = await db
+      .select()
+      .from(moderators)
+      .where(eq(moderators.userId, userId));
+    return moderator;
+  }
+
+  async createModerator(userId: number, permissions: string[]): Promise<Moderator> {
+    const [moderator] = await db
+      .insert(moderators)
+      .values({ userId, permissions })
+      .returning();
+    return moderator;
+  }
+
+  async getReports(status?: string): Promise<Report[]> {
+    let query = db.select().from(reports);
+    if (status) {
+      query = query.where(eq(reports.status, status));
+    }
+    return await query.orderBy(desc(reports.createdAt));
+  }
+
+  async createReport(report: Omit<Report, "id" | "status" | "createdAt" | "updatedAt">): Promise<Report> {
+    const [newReport] = await db
+      .insert(reports)
+      .values(report)
+      .returning();
+    return newReport;
+  }
+
+  async updateReportStatus(reportId: number, status: string, moderatorId: number, resolution?: string): Promise<Report> {
+    const [updatedReport] = await db
+      .update(reports)
+      .set({
+        status,
+        moderatorId,
+        resolution,
+        updatedAt: new Date(),
+      })
+      .where(eq(reports.id, reportId))
+      .returning();
+    return updatedReport;
   }
 }
 
