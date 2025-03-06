@@ -213,3 +213,67 @@ function FavoriteProjectCard({ favoriteId, projectId }: { favoriteId: number, pr
     </Card>
   );
 }
+import React from "react";
+import { useFavorites } from "@/hooks/use-favorites";
+import { ProjectCard } from "@/components/projects/project-card";
+import { Button } from "@/components/ui/button";
+import { PlusIcon } from "lucide-react";
+import { useUser } from "@/hooks/use-user";
+
+export default function FavoritesPage() {
+  const { favorites, isLoading, error } = useFavorites();
+  const { user } = useUser();
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto py-8">
+        <div className="flex items-center justify-center min-h-[50vh]">
+          <p>Chargement des favoris...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto py-8">
+        <div className="flex items-center justify-center min-h-[50vh]">
+          <p className="text-destructive">
+            Une erreur est survenue lors du chargement des favoris.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto py-8">
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-3xl font-bold">Mes Favoris</h1>
+        <Button asChild>
+          <a href="/projects">
+            <PlusIcon className="mr-2 h-4 w-4" />
+            Parcourir les projets
+          </a>
+        </Button>
+      </div>
+
+      {favorites && favorites.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {favorites.map((project) => (
+            <ProjectCard key={project.id} project={project} />
+          ))}
+        </div>
+      ) : (
+        <div className="flex flex-col items-center justify-center min-h-[50vh] bg-muted/40 rounded-lg p-8">
+          <p className="text-center text-muted-foreground mb-4">
+            Vous n'avez pas encore ajouté de projets à vos favoris.
+          </p>
+          <Button asChild variant="default">
+            <a href="/projects">Découvrir des projets</a>
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}

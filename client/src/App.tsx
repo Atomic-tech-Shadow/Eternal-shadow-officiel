@@ -16,6 +16,8 @@ import ReportsPage from "@/pages/moderation/reports-page";
 import SearchPage from "@/pages/search-page";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "./lib/protected-route";
+import ProfilePage from "@/pages/profile-page"; // Added import for ProfilePage
+
 
 function Router() {
   return (
@@ -31,6 +33,7 @@ function Router() {
       <ProtectedRoute path="/favorites" component={FavoritesPage} />
       <ProtectedRoute path="/moderation" component={ReportsPage} />
       <Route path="/search" component={SearchPage} />
+      <ProtectedRoute path="/profile" component={ProfilePage} /> {/* Added route for ProfilePage */}
       <Route component={NotFound} />
     </Switch>
   );

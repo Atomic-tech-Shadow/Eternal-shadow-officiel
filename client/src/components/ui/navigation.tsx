@@ -29,36 +29,49 @@ export default function Navigation() {
   const NavLinks = () => (
     <>
       {links.map(({ href, icon: Icon, label }) => (
-        <Link key={href} href={href}
-          className={cn(
-            "flex items-center gap-2 px-3 py-2 text-sm font-medium cursor-pointer",
-            "hover:text-primary transition-colors",
-            location === href
-              ? "border-b-2 border-primary text-primary"
-              : "text-muted-foreground"
-          )}
-          onClick={() => setIsOpen(false)}
-        >
-          <Icon className="h-4 w-4" aria-hidden="true" />
-          {label}
-        </Link>
+        <div key={href} className="relative">
+          <Link 
+            href={href}
+            onClick={() => setIsOpen(false)}
+          >
+            <div
+              className={cn(
+                "flex items-center gap-2 px-3 py-2 text-sm font-medium cursor-pointer",
+                "hover:text-primary transition-colors",
+                location === href
+                  ? "border-b-2 border-primary text-primary"
+                  : "text-muted-foreground"
+              )}
+            >
+              <Icon className="h-4 w-4" aria-hidden="true" />
+              {label}
+            </div>
+          </Link>
+        </div>
       ))}
       {user && ( // Added Favorites link conditionally
-        <Link href="/favorites"
-          className={cn(
-            "flex items-center gap-2 px-3 py-2 text-sm font-medium cursor-pointer",
-            "hover:text-primary transition-colors",
-            location === "/favorites"
-              ? "border-b-2 border-primary text-primary"
-              : "text-muted-foreground"
-          )}
-          onClick={() => setIsOpen(false)}
-        >
-          <span className="h-4 w-4">&#9733;</span> {/* Star icon placeholder */}
-          Favoris
-        </Link>
+        <div className="relative">
+          <Link 
+            href="/favorites"
+            onClick={() => setIsOpen(false)}
+          >
+            <div
+              className={cn(
+                "flex items-center gap-2 px-3 py-2 text-sm font-medium cursor-pointer",
+                "hover:text-primary transition-colors",
+                location === "/favorites"
+                  ? "border-b-2 border-primary text-primary"
+                  : "text-muted-foreground"
+              )}
+            >
+              <span className="h-4 w-4">&#9733;</span> {/* Star icon placeholder */}
+              Favoris
+            </div>
+          </Link>
+        </div>
       )}
     </>
+  )
   );
 
   return (
