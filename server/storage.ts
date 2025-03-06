@@ -1,6 +1,6 @@
 import { db } from "./db";
 import * as schema from "@shared/schema";
-import { and, eq, like, or, sql } from "drizzle-orm";
+import { and, eq, like, or, sql, desc } from "drizzle-orm";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
 import type { 
@@ -9,6 +9,14 @@ import type {
   Moderator, Report
 } from "@shared/schema";
 import { pool } from "./db";
+
+// Importation des tables du schéma
+const { 
+  users, posts, badges, userBadges, 
+  forumCategories, forumThreads, forumReplies,
+  projects, projectMembers, moderators, reports,
+  contentTemplates, ratings, favorites
+} = schema;
 
 const PostgresSessionStore = connectPg(session);
 
