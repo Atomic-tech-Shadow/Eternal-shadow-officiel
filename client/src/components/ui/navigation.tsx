@@ -29,39 +29,33 @@ export default function Navigation() {
   const NavLinks = () => (
     <>
       {links.map(({ href, icon: Icon, label }) => (
-        <Link key={href} href={href}>
-          <a
-            role="link"
-            aria-current={location === href ? "page" : undefined}
-            className={cn(
-              "flex items-center gap-2 px-3 py-2 text-sm font-medium cursor-pointer",
-              "hover:text-primary transition-colors",
-              location === href
-                ? "border-b-2 border-primary text-primary"
-                : "text-muted-foreground"
-            )}
-            onClick={() => setIsOpen(false)}
-          >
-            <Icon className="h-4 w-4" aria-hidden="true" />
-            {label}
-          </a>
+        <Link key={href} href={href}
+          className={cn(
+            "flex items-center gap-2 px-3 py-2 text-sm font-medium cursor-pointer",
+            "hover:text-primary transition-colors",
+            location === href
+              ? "border-b-2 border-primary text-primary"
+              : "text-muted-foreground"
+          )}
+          onClick={() => setIsOpen(false)}
+        >
+          <Icon className="h-4 w-4" aria-hidden="true" />
+          {label}
         </Link>
       ))}
       {user && ( // Added Favorites link conditionally
-        <Link href="/favorites">
-          <a
-            className={cn(
-              "flex items-center gap-2 px-3 py-2 text-sm font-medium cursor-pointer",
-              "hover:text-primary transition-colors",
-              location === "/favorites"
-                ? "border-b-2 border-primary text-primary"
-                : "text-muted-foreground"
-            )}
-            onClick={() => setIsOpen(false)}
-          >
-            <span className="h-4 w-4">&#9733;</span> {/* Star icon placeholder */}
-            Favoris
-          </a>
+        <Link href="/favorites"
+          className={cn(
+            "flex items-center gap-2 px-3 py-2 text-sm font-medium cursor-pointer",
+            "hover:text-primary transition-colors",
+            location === "/favorites"
+              ? "border-b-2 border-primary text-primary"
+              : "text-muted-foreground"
+          )}
+          onClick={() => setIsOpen(false)}
+        >
+          <span className="h-4 w-4">&#9733;</span> {/* Star icon placeholder */}
+          Favoris
         </Link>
       )}
     </>
