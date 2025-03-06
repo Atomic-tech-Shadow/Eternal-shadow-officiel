@@ -10,6 +10,8 @@ import CategoryPage from "@/pages/forum/category-page";
 import ThreadPage from "@/pages/forum/thread-page";
 import ProjectsPage from "@/pages/projects/projects-page";
 import ProjectPage from "@/pages/projects/project-page";
+import TemplatesPage from "@/pages/templates/templates-page";
+import FavoritesPage from "@/pages/favorites-page";
 import ReportsPage from "@/pages/moderation/reports-page";
 import SearchPage from "@/pages/search-page";
 import { AuthProvider } from "@/hooks/use-auth";
@@ -25,6 +27,8 @@ function Router() {
       <Route path="/forum/:slug/thread/:threadId" component={ThreadPage} />
       <Route path="/projects" component={ProjectsPage} />
       <Route path="/projects/:projectId" component={ProjectPage} />
+      <Route path="/templates" component={TemplatesPage} />
+      <ProtectedRoute path="/favorites" component={FavoritesPage} />
       <ProtectedRoute path="/moderation" component={ReportsPage} />
       <Route path="/search" component={SearchPage} />
       <Route component={NotFound} />

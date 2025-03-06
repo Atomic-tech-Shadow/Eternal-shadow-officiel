@@ -221,6 +221,97 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(projects);
   });
 
+  // Routes pour les modèles de contenu
+  app.get("/api/templates", async (req, res) => {
+    const category = req.query.category as string | undefined;
+    const templates = await storage.getContentTemplates(category);
+    res.json(templates);
+  });
+
+  app.get("/api/templates/:templateId", async (req, res) => {
+    const template = await storage.getContentTemplate(parseInt(req.params.templateId));
+    if (!template) return res.status(404).json({ message: "Template not found" });
+    res.json(template);
+  });
+
+  app.post("/api/templates", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    const result = insertTemplateSchema.safeParse(req.body);
+    if (!result.success) {
+      return res.status(400).json(result.error);
+    }
+
+    const template = await storage.createContentTemplate({
+      ...result.data,
+      createdBy: req.user.id,
+    });
+    res.status(201).json(template);
+  });
+
+  // Routes pour les évaluations (ratings)
+  app.get("/api/ratings/:targetType/:targetId", async (req, res) => {
+    const { targetType, targetId } = req.params;
+    const ratings = await storage.getRatings(targetType, parseInt(targetId));
+    res.json(ratings);
+  });
+
+  app.get("/api/ratings/:targetType/:targetId/average", async (req, res) => {
+    const { targetType, targetId } = req.params;
+    const average = await storage.getAverageRating(targetType, parseInt(targetId));
+    res.json(average);
+  });
+
+  app.post("/api/ratings", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    const result = insertRatingSchema.safeParse(req.body);
+    if (!result.success) {
+      return res.status(400).json(result.error);
+    }
+
+    const rating = await storage.createOrUpdateRating({
+      ...result.data,
+      userId: req.user.id,
+    });
+    res.status(201).json(rating);
+  });
+
+  // Routes pour les favoris
+  app.get("/api/users/:userId/favorites", async (req, res) => {
+    const favorites = await storage.getUserFavorites(parseInt(req.params.userId));
+    res.json(favorites);
+  });
+
+  app.post("/api/favorites", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    const { targetType, targetId } = req.body;
+    if (!targetType || !targetId) {
+      return res.status(400).json({ message: "Missing targetType or targetId" });
+    }
+
+    const favorite = await storage.addToFavorites({
+      targetType,
+      targetId,
+      userId: req.user.id,
+    });
+    res.status(201).json(favorite);
+  });
+
+  app.delete("/api/favorites/:targetType/:targetId", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    const { targetType, targetId } = req.params;
+    
+    await storage.removeFromFavorites({
+      targetType,
+      targetId: parseInt(targetId),
+      userId: req.user.id,
+    });
+    res.sendStatus(204);
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

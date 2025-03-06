@@ -1,6 +1,11 @@
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
 import { Post } from "@shared/schema";
 import { Badge } from "@/components/ui/badge";
+import { formatDistance } from "date-fns";
+import { fr } from "date-fns/locale";
+import { Heart as HeartIcon, MessageSquare as MessageSquareIcon } from "lucide-react";
+import StarRating from "./rating/star-rating";
+import FavoriteButton from "./favorites/favorite-button";
 
 export default function PostCard({ post }: { post: Post }) {
   return (
@@ -30,6 +35,22 @@ export default function PostCard({ post }: { post: Post }) {
           ))}
         </div>
       </CardContent>
+      <CardFooter className="flex justify-between">
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center space-x-2">
+            <HeartIcon className="h-5 w-5 text-slate-500" />
+            <span className="text-sm text-slate-500">0 likes</span>
+          </div>
+          <StarRating targetType="post" targetId={post.id} />
+        </div>
+        <div className="flex flex-col gap-2 items-end">
+          <Button variant="ghost" size="sm">
+            <MessageSquareIcon className="h-5 w-5 mr-1" />
+            Commenter
+          </Button>
+          <FavoriteButton targetType="post" targetId={post.id} />
+        </div>
+      </CardFooter>
     </Card>
   );
 }

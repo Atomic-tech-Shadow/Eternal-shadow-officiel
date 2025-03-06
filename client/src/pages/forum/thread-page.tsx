@@ -20,6 +20,9 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import StarRating from "@/components/rating/star-rating"; // Placeholder component
+import FavoriteButton from "@/components/favorites/favorite-button"; // Placeholder component
+
 
 export default function ThreadPage() {
   const { threadId, slug } = useParams();
@@ -121,6 +124,13 @@ export default function ThreadPage() {
           <p className="text-muted-foreground mt-2">
             Créé {formatDistanceToNow(new Date(thread.createdAt), { addSuffix: true })}
           </p>
+          <div className="flex justify-between items-start">
+            <div></div>
+            <div className="flex flex-col items-end gap-2">
+              <StarRating targetType="thread" targetId={thread.id} />
+              <FavoriteButton targetType="thread" targetId={thread.id} />
+            </div>
+          </div>
         </div>
 
         <div className="bg-card rounded-lg p-6">

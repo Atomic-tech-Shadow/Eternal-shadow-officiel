@@ -160,7 +160,58 @@ export type ForumReply = typeof forumReplies.$inferSelect;
 export type Project = typeof projects.$inferSelect;
 export type ProjectMember = typeof projectMembers.$inferSelect;
 
+// Table pour les modèles de contenu
+export const contentTemplates = pgTable("content_templates", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  category: text("category").notNull(), // anime_review, tutorial, project, etc.
+  content: text("content").notNull(),
+  createdBy: integer("created_by").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Table pour les évaluations
+export const ratings = pgTable("ratings", {
+  id: serial("id").primaryKey(),
+  targetType: text("target_type").notNull(), // 'post', 'thread', 'project', etc.
+  targetId: integer("target_id").notNull(),
+  userId: integer("user_id").notNull(),
+  score: integer("score").notNull(), // 1-5 étoiles
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Table pour les favoris
+export const favorites = pgTable("favorites", {
+  id: serial("id").primaryKey(),
+  targetType: text("target_type").notNull(), // 'post', 'thread', 'project', etc.
+  targetId: integer("target_id").notNull(),
+  userId: integer("user_id").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Schémas d'insertion
+export const insertTemplateSchema = createInsertSchema(contentTemplates).pick({
+  name: true,
+  description: true,
+  category: true,
+  content: true,
+});
+
+export const insertRatingSchema = createInsertSchema(ratings).pick({
+  targetType: true,
+  targetId: true,
+  score: true,
+});
+
 // Types exportés pour la modération
 export type Moderator = typeof moderators.$inferSelect;
 export type Report = typeof reports.$inferSelect;
 export type InsertReport = z.infer<typeof insertReportSchema>;
+
+// Types exportés pour les nouvelles fonctionnalités
+export type ContentTemplate = typeof contentTemplates.$inferSelect;
+export type Rating = typeof ratings.$inferSelect;
+export type Favorite = typeof favorites.$inferSelect;
+export type InsertTemplate = z.infer<typeof insertTemplateSchema>;
+export type InsertRating = z.infer<typeof insertRatingSchema>;

@@ -11,14 +11,19 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 
+// Added a placeholder for useAuth.  Replace with your actual implementation.
+const useAuth = () => ({ user: true }); // Replace with your actual auth logic
+
 export default function Navigation() {
   const [location] = useLocation();
   const [isOpen, setIsOpen] = useState(false);
+  const { user } = useAuth();
 
   const links = [
     { href: "/", icon: Home, label: "Accueil" },
     { href: "/forum", icon: MessageSquare, label: "Forum" },
     { href: "/projects", icon: FolderGit2, label: "Projets" },
+    { href: "/templates", icon: FolderGit2, label: "Modèles" }, // Added Templates link
   ];
 
   const NavLinks = () => (
@@ -42,6 +47,23 @@ export default function Navigation() {
           </a>
         </Link>
       ))}
+      {user && ( // Added Favorites link conditionally
+        <Link href="/favorites">
+          <a
+            className={cn(
+              "flex items-center gap-2 px-3 py-2 text-sm font-medium cursor-pointer",
+              "hover:text-primary transition-colors",
+              location === "/favorites"
+                ? "border-b-2 border-primary text-primary"
+                : "text-muted-foreground"
+            )}
+            onClick={() => setIsOpen(false)}
+          >
+            <span className="h-4 w-4">&#9733;</span> {/* Star icon placeholder */}
+            Favoris
+          </a>
+        </Link>
+      )}
     </>
   );
 

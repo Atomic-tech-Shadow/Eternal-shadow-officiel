@@ -1,6 +1,6 @@
 import { db } from "./db";
-import { users, posts, badges, userBadges, forumCategories, forumThreads, forumReplies, projects, projectMembers, moderators, reports } from "@shared/schema";
-import { eq, desc, ilike, or } from "drizzle-orm";
+import * as schema from "@shared/schema";
+import { and, eq, like, or, sql } from "drizzle-orm";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
 import type { 
@@ -50,6 +50,17 @@ export interface IStorage {
   searchPosts(query: string): Promise<Post[]>;
   searchThreads(query: string): Promise<ForumThread[]>;
   searchProjects(query: string): Promise<Project[]>;
+
+  // Nouvelles fonctions pour templates, notations et favoris
+  getContentTemplates(category?: string): Promise<schema.ContentTemplate[]>;
+  getContentTemplate(id: number): Promise<schema.ContentTemplate | null>;
+  createContentTemplate(data: Omit<schema.InsertTemplate, "createdBy"> & { createdBy: number }): Promise<schema.ContentTemplate>;
+  getRatings(targetType: string, targetId: number): Promise<schema.Rating[]>;
+  getAverageRating(targetType: string, targetId: number): Promise<{ average: number; count: number }>;
+  createOrUpdateRating(data: { targetType: string; targetId: number; userId: number; score: number }): Promise<schema.Rating>;
+  getUserFavorites(userId: number): Promise<schema.Favorite[]>;
+  addToFavorites(data: { targetType: string; targetId: number; userId: number }): Promise<schema.Favorite>;
+  removeFromFavorites(data: { targetType: string; targetId: number; userId: number }): Promise<schema.Favorite[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -291,6 +302,110 @@ export class DatabaseStorage implements IStorage {
         )
       )
       .orderBy(desc(projects.updatedAt));
+  }
+
+  // Nouvelles fonctions pour les templates de contenu
+  async getContentTemplates(category?: string): Promise<schema.ContentTemplate[]> {
+    if (category) {
+      return await db.select().from(schema.contentTemplates).where(eq(schema.contentTemplates.category, category));
+    }
+    return await db.select().from(schema.contentTemplates);
+  }
+
+  async getContentTemplate(id: number): Promise<schema.ContentTemplate | null> {
+    const [template] = await db.select().from(schema.contentTemplates).where(eq(schema.contentTemplates.id, id));
+    return template || null;
+  }
+
+  async createContentTemplate(data: Omit<schema.InsertTemplate, "createdBy"> & { createdBy: number }): Promise<schema.ContentTemplate> {
+    const [newTemplate] = await db.insert(schema.contentTemplates).values(data).returning();
+    return newTemplate;
+  }
+
+  // Fonctions pour les évaluations
+  async getRatings(targetType: string, targetId: number): Promise<schema.Rating[]> {
+    return await db.select().from(schema.ratings)
+      .where(and(
+        eq(schema.ratings.targetType, targetType),
+        eq(schema.ratings.targetId, targetId)
+      ));
+  }
+
+  async getAverageRating(targetType: string, targetId: number): Promise<{ average: number; count: number }> {
+    const result = await db.select({
+      average: sql`avg(${schema.ratings.score})`,
+      count: sql`count(*)`,
+    }).from(schema.ratings)
+      .where(and(
+        eq(schema.ratings.targetType, targetType),
+        eq(schema.ratings.targetId, targetId)
+      ));
+
+    return {
+      average: result[0]?.average ? parseFloat(result[0].average.toString()) : 0,
+      count: parseInt(result[0]?.count?.toString() || "0"),
+    };
+  }
+
+  async createOrUpdateRating(data: { targetType: string; targetId: number; userId: number; score: number }): Promise<schema.Rating> {
+    // Vérifier si l'utilisateur a déjà noté cet élément
+    const existingRating = await db.select().from(schema.ratings)
+      .where(and(
+        eq(schema.ratings.targetType, data.targetType),
+        eq(schema.ratings.targetId, data.targetId),
+        eq(schema.ratings.userId, data.userId)
+      )).then(rows => rows[0] || null);
+
+    if (existingRating) {
+      // Mettre à jour la note existante
+      const [updatedRating] = await db.update(schema.ratings)
+        .set({ score: data.score })
+        .where(eq(schema.ratings.id, existingRating.id))
+        .returning();
+      return updatedRating;
+    } else {
+      // Créer une nouvelle note
+      const [newRating] = await db.insert(schema.ratings)
+        .values(data)
+        .returning();
+      return newRating;
+    }
+  }
+
+  // Fonctions pour les favoris
+  async getUserFavorites(userId: number): Promise<schema.Favorite[]> {
+    return await db.select().from(schema.favorites)
+      .where(eq(schema.favorites.userId, userId));
+  }
+
+  async addToFavorites(data: { targetType: string; targetId: number; userId: number }): Promise<schema.Favorite> {
+    // Vérifier si déjà dans les favoris
+    const existing = await db.select().from(schema.favorites)
+      .where(and(
+        eq(schema.favorites.targetType, data.targetType),
+        eq(schema.favorites.targetId, data.targetId),
+        eq(schema.favorites.userId, data.userId)
+      )).then(rows => rows[0] || null);
+
+    if (existing) {
+      return existing;
+    }
+
+    const [newFavorite] = await db.insert(schema.favorites)
+      .values(data)
+      .returning();
+    return newFavorite;
+  }
+
+  async removeFromFavorites(data: { targetType: string; targetId: number; userId: number }): Promise<schema.Favorite[]> {
+    const deletedFavorites = await db.delete(schema.favorites)
+      .where(and(
+        eq(schema.favorites.targetType, data.targetType),
+        eq(schema.favorites.targetId, data.targetId),
+        eq(schema.favorites.userId, data.userId)
+      ))
+      .returning();
+    return deletedFavorites;
   }
 }
 

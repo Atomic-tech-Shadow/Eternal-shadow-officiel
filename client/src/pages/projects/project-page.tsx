@@ -1,6 +1,6 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useParams, Link } from "wouter";
-import { Project, User } from "@shared/schema";
+import { Project } from "@shared/schema";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -23,6 +23,8 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import StarRating from "@/components/rating/star-rating";
+import FavoriteButton from "@/components/favorites/favorite-button";
 
 export default function ProjectPage() {
   const { projectId } = useParams();
@@ -95,22 +97,30 @@ export default function ProjectPage() {
         <div className="lg:col-span-2 space-y-8">
           <Card>
             <CardHeader>
-              <div className="flex justify-between items-start">
-                <CardTitle className="text-3xl">{project.name}</CardTitle>
-                {user && !isUserMember && (
-                  <Select
-                    onValueChange={(role) => joinProjectMutation.mutate(role)}
-                    disabled={joinProjectMutation.isPending}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Rejoindre le projet" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="member">Membre</SelectItem>
-                      <SelectItem value="contributor">Contributeur</SelectItem>
-                    </SelectContent>
-                  </Select>
-                )}
+              <div className="flex justify-between items-center">
+                <div>
+                  <CardTitle className="text-3xl">{project.name}</CardTitle>
+                  <div className="mt-2">
+                    <StarRating targetType="project" targetId={project.id} />
+                  </div>
+                </div>
+                <div className="flex flex-col gap-2 items-end">
+                  {user && !isUserMember && (
+                    <Select
+                      onValueChange={(role) => joinProjectMutation.mutate(role)}
+                      disabled={joinProjectMutation.isPending}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Rejoindre le projet" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="member">Membre</SelectItem>
+                        <SelectItem value="contributor">Contributeur</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                  <FavoriteButton targetType="project" targetId={project.id} />
+                </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
