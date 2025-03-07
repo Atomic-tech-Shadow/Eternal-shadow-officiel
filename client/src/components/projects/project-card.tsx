@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Heart } from "lucide-react";
 import { Link } from "wouter";
 import { cn } from "@/lib/utils";
-import { Project } from "@/types/project";
+import { Project } from "@shared/schema";
 
 interface ProjectCardProps {
   project: Project;
@@ -16,7 +16,7 @@ interface ProjectCardProps {
   className?: string;
 }
 
-export function ProjectCard({ 
+export default function ProjectCard({ 
   project, 
   isFavorited = false, 
   onFavoriteToggle,
@@ -36,7 +36,7 @@ export function ProjectCard({
         <CardHeader className="p-4 pb-0">
           <div className="flex justify-between items-start">
             <div>
-              <h3 className="font-semibold text-lg">{project.title}</h3>
+              <h3 className="font-semibold text-lg">{project.name || project.title}</h3>
               <p className="text-sm text-muted-foreground line-clamp-2">{project.description}</p>
             </div>
             <Button 
@@ -52,18 +52,22 @@ export function ProjectCard({
         </CardHeader>
         <CardContent className="p-4 pt-2">
           <div className="flex flex-wrap gap-1 mb-2">
-            {project.tags.map((tag) => (
+            {project.tags && project.tags.map((tag) => (
               <Badge key={tag} variant="secondary" className="text-xs">{tag}</Badge>
             ))}
           </div>
         </CardContent>
         <CardFooter className="p-4 pt-0 flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <Avatar className="h-6 w-6">
-              <AvatarImage src={project.author.avatarUrl} alt={project.author.name} />
-              <AvatarFallback>{project.author.name.substring(0, 2)}</AvatarFallback>
-            </Avatar>
-            <span className="text-sm text-muted-foreground">{project.author.name}</span>
+            {project.author && (
+              <>
+                <Avatar className="h-6 w-6">
+                  <AvatarImage src={project.author.avatarUrl} alt={project.author.name} />
+                  <AvatarFallback>{project.author.name?.substring(0, 2) || "UN"}</AvatarFallback>
+                </Avatar>
+                <span className="text-sm text-muted-foreground">{project.author.name}</span>
+              </>
+            )}
           </div>
           <span className="text-xs text-muted-foreground">
             {new Date(project.createdAt).toLocaleDateString()}
@@ -73,6 +77,3 @@ export function ProjectCard({
     </Link>
   );
 }
-
-// Ajout de l'export nommé pour corriger l'erreur
-export { ProjectCard };
