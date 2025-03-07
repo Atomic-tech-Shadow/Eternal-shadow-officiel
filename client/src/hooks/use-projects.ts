@@ -1,10 +1,11 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { Project } from "@shared/schema";
 import { getQueryFn } from "../lib/queryClient";
-import { useAuth } from './authContext'; // Added import for useAuth
+import { useAuth } from "./use-auth"; // Correction de l'import
 
 export function useProjects(userId?: number) {
-  const { user } = useAuth(); // Added to access user from auth context
+  const { user } = useAuth(); // Utilisation de useAuth
   const queryKey = userId
     ? [`/api/users/${userId}/projects`]
     : ["/api/projects"];
@@ -15,9 +16,7 @@ export function useProjects(userId?: number) {
     onError: (error) => {
       // Handle errors, including 401 (Unauthorized)
       if (error.response && error.response.status === 401) {
-        // Perform appropriate action, e.g., redirect to login
         console.error("Unauthorized access:", error);
-        // Add your 401 handling logic here.  Example:  router.push('/login');
       } else {
         console.error("Error fetching projects:", error);
       }
