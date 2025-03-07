@@ -9,6 +9,7 @@ import { Link } from "wouter";
 import { useFavorites } from "@/hooks/use-favorites";
 import { ProjectCard } from "@/components/projects/project-card";
 import { Button } from "@/components/ui/button";
+import { useUser } from "@/hooks/use-user";
 
 export default function FavoritesPage() {
   const { user } = useAuth();
@@ -72,7 +73,7 @@ export default function FavoritesPage() {
         </div>
 
         <Tabs defaultValue="all">
-          <TabsList>
+          <TabsList className="mb-4">
             <TabsTrigger value="all">Tous</TabsTrigger>
             <TabsTrigger value="articles">Articles</TabsTrigger>
             <TabsTrigger value="projects">Projets</TabsTrigger>
@@ -168,92 +169,45 @@ export default function FavoritesPage() {
   );
 }
 
+// Components temporaires pour le rendu des favoris
+// Ces composants devraient être remplacés par de vrais composants lorsqu'ils seront créés
 function FavoriteProjectCard({ favoriteId, projectId }: { favoriteId: number, projectId: number }) {
-  const { data: project, isLoading } = useQuery({
-    queryKey: [`/api/projects/${projectId}`],
-  });
-
-  if (isLoading) {
-    return <Card className="flex items-center justify-center p-4 h-40"><Loader2 className="h-6 w-6 animate-spin" /></Card>;
-  }
-
-  if (!project) {
-    return <Card className="p-4 h-40">Projet non disponible</Card>;
-  }
-
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="truncate">{project.name}</CardTitle>
-        <CardDescription>Projet</CardDescription>
+        <CardTitle>Projet #{projectId}</CardTitle>
+        <CardDescription>Favori #{favoriteId}</CardDescription>
       </CardHeader>
       <CardContent>
-        <p className="text-sm text-muted-foreground truncate">{project.description.slice(0, 50)}...</p>
-        <div className="mt-4">
-          <Link href={`/projects/${project.id}`} className="text-primary hover:underline">
-            Voir le projet
-          </Link>
-        </div>
+        <p>Détails du projet à venir</p>
       </CardContent>
     </Card>
   );
 }
 
 function FavoritePostCard({ favoriteId, postId }: { favoriteId: number, postId: number }) {
-  const { data: post, isLoading } = useQuery({
-    queryKey: [`/api/posts/${postId}`],
-  });
-
-  if (isLoading) {
-    return <Card className="flex items-center justify-center p-4 h-40"><Loader2 className="h-6 w-6 animate-spin" /></Card>;
-  }
-
-  if (!post) {
-    return <Card className="p-4 h-40">Post non disponible</Card>;
-  }
-
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="truncate">{post.content.slice(0, 30)}...</CardTitle>
-        <CardDescription>Post</CardDescription>
+        <CardTitle>Post #{postId}</CardTitle>
+        <CardDescription>Favori #{favoriteId}</CardDescription>
       </CardHeader>
       <CardContent>
-        <p className="text-sm text-muted-foreground truncate">{post.content}</p>
-        <div className="mt-4">
-          <Link href="/" className="text-primary hover:underline">Voir le post</Link>
-        </div>
+        <p>Détails du post à venir</p>
       </CardContent>
     </Card>
   );
 }
 
 function FavoriteThreadCard({ favoriteId, threadId }: { favoriteId: number, threadId: number }) {
-  const { data: thread, isLoading } = useQuery({
-    queryKey: [`/api/forum/threads/${threadId}`],
-  });
-
-  if (isLoading) {
-    return <Card className="flex items-center justify-center p-4 h-40"><Loader2 className="h-6 w-6 animate-spin" /></Card>;
-  }
-
-  if (!thread) {
-    return <Card className="p-4 h-40">Discussion non disponible</Card>;
-  }
-
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="truncate">{thread.title}</CardTitle>
-        <CardDescription>Discussion</CardDescription>
+        <CardTitle>Discussion #{threadId}</CardTitle>
+        <CardDescription>Favori #{favoriteId}</CardDescription>
       </CardHeader>
       <CardContent>
-        <p className="text-sm text-muted-foreground truncate">{thread.content.slice(0, 50)}...</p>
-        <div className="mt-4">
-          <Link href={`/forum/${thread.categoryId}/thread/${thread.id}`} className="text-primary hover:underline">
-            Voir la discussion
-          </Link>
-        </div>
+        <p>Détails de la discussion à venir</p>
       </CardContent>
     </Card>
   );
