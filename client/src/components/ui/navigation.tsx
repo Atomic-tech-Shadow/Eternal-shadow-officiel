@@ -1,4 +1,3 @@
-
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { Home, MessageSquare, FolderGit2, Menu, X, User, Heart } from "lucide-react";
