@@ -1,15 +1,14 @@
+
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import Navigation from "@/components/ui/navigation";
-import { Loader2, PlusIcon } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "wouter";
 import { useFavorites } from "@/hooks/use-favorites";
-import { ProjectCard } from "@/components/projects/project-card";
 import { Button } from "@/components/ui/button";
-import { useUser } from "@/hooks/use-user";
 
 export default function FavoritesPage() {
   const { user } = useAuth();
@@ -56,7 +55,6 @@ export default function FavoritesPage() {
   const projectFavorites = favorites?.filter(fav => fav.targetType === 'project') || [];
   const threadFavorites = favorites?.filter(fav => fav.targetType === 'thread') || [];
   const postFavorites = favorites?.filter(fav => fav.targetType === 'post') || [];
-
 
   return (
     <div className="min-h-screen">
@@ -150,6 +148,7 @@ export default function FavoritesPage() {
               </div>
             )}
           </TabsContent>
+          
           <TabsContent value="posts" className="mt-6">
             {postFavorites.length === 0 ? (
               <div className="text-center py-8">
@@ -170,7 +169,6 @@ export default function FavoritesPage() {
 }
 
 // Components temporaires pour le rendu des favoris
-// Ces composants devraient être remplacés par de vrais composants lorsqu'ils seront créés
 function FavoriteProjectCard({ favoriteId, projectId }: { favoriteId: number, projectId: number }) {
   return (
     <Card>
@@ -180,6 +178,11 @@ function FavoriteProjectCard({ favoriteId, projectId }: { favoriteId: number, pr
       </CardHeader>
       <CardContent>
         <p>Détails du projet à venir</p>
+        <div className="mt-4">
+          <Link href={`/projects/${projectId}`} className="text-primary hover:underline">
+            Voir le projet
+          </Link>
+        </div>
       </CardContent>
     </Card>
   );
@@ -194,6 +197,9 @@ function FavoritePostCard({ favoriteId, postId }: { favoriteId: number, postId: 
       </CardHeader>
       <CardContent>
         <p>Détails du post à venir</p>
+        <div className="mt-4">
+          <Link href="/" className="text-primary hover:underline">Voir le post</Link>
+        </div>
       </CardContent>
     </Card>
   );
@@ -208,6 +214,11 @@ function FavoriteThreadCard({ favoriteId, threadId }: { favoriteId: number, thre
       </CardHeader>
       <CardContent>
         <p>Détails de la discussion à venir</p>
+        <div className="mt-4">
+          <Link href={`/forum/thread/${threadId}`} className="text-primary hover:underline">
+            Voir la discussion
+          </Link>
+        </div>
       </CardContent>
     </Card>
   );
