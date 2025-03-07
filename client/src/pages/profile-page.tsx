@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useFavorites } from "@/hooks/use-favorites";
 import { useProjects } from "@/hooks/use-projects";
-import { ProjectCard } from "@/components/projects/project-card";
+import ProjectCard from "@/components/projects/project-card";
 import { ExperienceBar } from "@/components/experience-bar";
 
 export default function ProfilePage() {

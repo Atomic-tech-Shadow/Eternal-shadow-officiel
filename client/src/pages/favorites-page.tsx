@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
@@ -148,7 +147,7 @@ export default function FavoritesPage() {
               </div>
             )}
           </TabsContent>
-          
+
           <TabsContent value="posts" className="mt-6">
             {postFavorites.length === 0 ? (
               <div className="text-center py-8">
